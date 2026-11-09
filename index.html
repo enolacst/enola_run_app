@@ -1,0 +1,542 @@
+<!doctype html><html><head><meta charset=utf8><meta name="theme-color" content="#4A1120"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Enola Run"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8F%83%E2%80%8D%E2%99%80%EF%B8%8F%3C/text%3E%3C/svg%3E"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Enola Run Club</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky bordeaux header, hero with key numbers, tab bar, week grid opening a detail panel where each session carries its own feeling + note log */
+:root {
+  --bordeaux: #6B1B2E;
+  --bordeaux-dark: #4A1120;
+  --bordeaux-mid: #C4596E;
+  --bordeaux-pale: #F5E8EC;
+  --bg: #FAF7F4;
+  --card: #FFFFFF;
+  --fg: #1A0A0F;
+  --muted: #7C7174;
+  --line: #E8E2E4;
+  --field: #FFFFFF;
+  --green: #2D6A4F; --green-pale: #D8F3DC;
+  --amber: #8B5E00; --amber-pale: #FFF3CD;
+  --blue: #1A4A7A; --blue-pale: #E3EEF9;
+  --s1: #4C9A6A; --s2: #D4A62A; --s3: #D9772B; --s4: #B3263E;
+  --display: 'Bebas Neue', Impact, sans-serif;
+  --body: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bordeaux: #D4667E; --bordeaux-dark: #2A0A14; --bordeaux-mid: #E58A9E; --bordeaux-pale: #3A1A24;
+  --bg: #170B0F; --card: #22121A; --fg: #F3E9EC; --muted: #A99BA0; --line: #3A2831; --field: #1B0E14;
+  --green: #7FD1A0; --green-pale: #1E3A2B; --amber: #E6C066; --amber-pale: #3B2F10; --blue: #8DB8E8; --blue-pale: #1B2E45;
+  --s1: #5FB47F; --s2: #E0B93E; --s3: #E88A3F; --s4: #E2556C; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bordeaux: #D4667E; --bordeaux-dark: #2A0A14; --bordeaux-mid: #E58A9E; --bordeaux-pale: #3A1A24;
+  --bg: #170B0F; --card: #22121A; --fg: #F3E9EC; --muted: #A99BA0; --line: #3A2831; --field: #1B0E14;
+  --green: #7FD1A0; --green-pale: #1E3A2B; --amber: #E6C066; --amber-pale: #3B2F10; --blue: #8DB8E8; --blue-pale: #1B2E45;
+  --s1: #5FB47F; --s2: #E0B93E; --s3: #E88A3F; --s4: #E2556C; color-scheme: dark; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--body); background: var(--bg); color: var(--fg); min-height: 100vh; }
+.gut { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1060px; margin: 0 auto; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 200; background: #4A1120; }
+header { background: #4A1120; color: #fff; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 100; }
+.hd { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 12px; }
+.logo { font-family: var(--display); font-size: 26px; letter-spacing: .05em; display: flex; align-items: center; gap: 10px; }
+.logo i { font-style: normal; color: #C4596E; }
+.logo-ic { width: 34px; height: 34px; border-radius: 8px; background: #6B1B2E; display: grid; place-items: center; }
+.sync { font: 500 11px var(--mono); color: rgba(255,255,255,.65); text-align: right; }
+.hero { background: #4A1120; color: #fff; padding-block: 28px 40px; position: relative; overflow: hidden; }
+.hero-tag { display: inline-block; background: rgba(255,255,255,.14); font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 18px; }
+.hero h1 { font-family: var(--display); font-size: clamp(40px, 8vw, 76px); letter-spacing: .03em; line-height: .95; margin-bottom: 14px; text-wrap: balance; }
+.hero h1 span { color: #C4596E; }
+.hero p { font-size: 14px; color: rgba(255,255,255,.7); max-width: 56ch; line-height: 1.7; margin-bottom: 24px; }
+.hstats { display: flex; gap: 14px 28px; flex-wrap: wrap; }
+.hs b { display: block; font: 400 32px/1 var(--display); letter-spacing: .02em; }
+.hs span { font-size: 11px; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: .1em; }
+.mark { position: absolute; right: -8px; top: 50%; transform: translateY(-50%); font: 400 150px var(--display); color: rgba(255,255,255,.045); pointer-events: none; }
+nav { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: calc(60px + env(safe-area-inset-top, 0px)); z-index: 90; }
+.tabs { display: flex; overflow-x: auto; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); font: 500 13px var(--body); padding: 14px 18px; cursor: pointer; white-space: nowrap; }
+.tab:hover { color: var(--fg); }
+.tab.on { color: var(--bordeaux); border-bottom-color: var(--bordeaux); }
+.tab:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid var(--bordeaux-mid); outline-offset: 2px; }
+main { padding-block: 26px 60px; }
+.pane { display: none; } .pane.on { display: block; }
+.intro { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; max-width: 70ch; }
+.phase { font: 400 20px var(--display); letter-spacing: .05em; color: var(--bordeaux); padding: 20px 0 8px; border-bottom: 2px solid var(--bordeaux-pale); margin-bottom: 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.phase span { font: 400 12px var(--body); color: var(--muted); letter-spacing: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.wk { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; cursor: pointer; text-align: left; color: inherit; font-family: inherit; position: relative; overflow: hidden; transition: transform .2s, border-color .2s; }
+.wk:hover { border-color: var(--bordeaux-mid); transform: translateY(-2px); }
+.wk.sel { border-color: var(--bordeaux); }
+.wk.rec { border-color: color-mix(in srgb, var(--green) 45%, var(--line)); }
+.wk-n { font: 400 12px var(--display); letter-spacing: .1em; color: var(--muted); }
+.wk-t { font-size: 13px; font-weight: 500; margin: 3px 0 10px; line-height: 1.3; min-height: 34px; }
+.wk-s { display: flex; gap: 6px; margin-bottom: 10px; }
+.chip { height: 26px; min-width: 26px; padding-inline: 8px; border-radius: 7px; display: grid; place-items: center; font: 500 11px var(--mono); background: var(--bordeaux-pale); color: var(--bordeaux); border: 1.5px solid transparent; }
+.chip.end { background: var(--blue-pale); color: var(--blue); }
+.chip.done { border-color: currentColor; }
+.wk-v { font: 500 12px var(--mono); color: var(--bordeaux); }
+.badge { display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 10px; background: var(--green-pale); color: var(--green); }
+.badge.test { background: var(--amber-pale); color: var(--amber); }
+.panel { display: none; background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 22px; margin-bottom: 18px; }
+.panel.on { display: block; animation: sl .2s ease; }
+@keyframes sl { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .panel.on { animation: none; } .wk { transition: none; } }
+.ph { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+.ph small { font: 400 12px var(--display); letter-spacing: .1em; color: var(--muted); }
+.ph h2 { font: 400 26px var(--display); letter-spacing: .03em; color: var(--bordeaux); }
+.x { background: var(--line); border: 0; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; color: var(--muted); flex-shrink: 0; }
+.sess { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+.sh { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.ty { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--bordeaux-pale); color: var(--bordeaux); }
+.ty.end { background: var(--blue-pale); color: var(--blue); }
+.sn { font-size: 13px; font-weight: 500; flex: 1; min-width: 160px; }
+.sd { font: 400 12px var(--mono); color: var(--muted); }
+.sb { padding: 14px; }
+.desc { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 10px; max-width: 70ch; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.tag { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; font-size: 11px; }
+.log { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.log-t { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.feel { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; margin-bottom: 10px; }
+.fb { background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; padding: 9px 6px; font: 500 12px var(--body); color: var(--fg); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.fb i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); display: block; }
+.fb:hover { border-color: var(--c); }
+.fb[aria-pressed="true"] { background: var(--c); border-color: var(--c); color: #fff; }
+.fb[aria-pressed="true"] i { background: #fff; }
+.note { width: 100%; min-height: 62px; resize: vertical; background: var(--field); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; font: 400 13px/1.5 var(--body); }
+.meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font: 400 11px var(--mono); color: var(--muted); min-height: 16px; }
+.lnk { background: none; border: 0; color: var(--bordeaux); font: 500 11px var(--mono); cursor: pointer; text-decoration: underline; padding: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.kpi { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; }
+.kpi b { display: block; font: 400 38px/1 var(--display); color: var(--bordeaux); letter-spacing: .02em; }
+.kpi b small { font: 400 14px var(--body); color: var(--bordeaux-mid); }
+.kpi span { display: block; font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+.box { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+.box h3 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.box .sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.chartwrap { overflow-x: auto; }
+svg text { font-family: var(--mono); }
+.verdict { background: var(--bordeaux-pale); border-left: 3px solid var(--bordeaux); border-radius: 0 10px 10px 0; padding: 12px 14px; font-size: 13px; line-height: 1.6; margin-bottom: 14px; color: var(--fg); }
+.dist { display: grid; gap: 8px; }
+.drow { display: grid; grid-template-columns: 96px 1fr 34px; gap: 10px; align-items: center; font-size: 12px; }
+.dtrack { height: 12px; background: var(--bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.dfill { height: 100%; border-radius: 6px; background: var(--c); }
+.drow .n { font: 500 12px var(--mono); text-align: right; }
+.jr { display: grid; gap: 10px; }
+.je { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: var(--bg); }
+.je-h { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; margin-bottom: 4px; }
+.pill { color: #fff; background: var(--c); font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 10px; }
+.je-d { font: 400 11px var(--mono); color: var(--muted); }
+.je p { font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.empty { font-size: 13px; color: var(--muted); padding: 10px 0; line-height: 1.6; }
+.btn { background: var(--bordeaux); color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; font: 500 13px var(--body); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--bordeaux); border: 1.5px solid var(--bordeaux); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.tip { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 10px; display: flex; gap: 14px; align-items: flex-start; }
+.tip-ic { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; font: 500 12px var(--mono); background: var(--bordeaux-pale); color: var(--bordeaux); }
+.tip-t { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.tip-x { font-size: 13px; color: var(--muted); line-height: 1.7; max-width: 70ch; }
+.pcard { background: #4A1120; color: #fff; border-radius: 16px; padding: 22px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px; }
+.pf span { display: block; font-size: 11px; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 3px; }
+.pf b { font-size: 15px; font-weight: 500; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 460px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th { font: 500 11px var(--body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.m { font-family: var(--mono); color: var(--bordeaux); }
+@media (max-width: 600px) { .grid { grid-template-columns: 1fr 1fr; } .mark { display: none; } .drow { grid-template-columns: 80px 1fr 28px; } }
+</style>
+
+<header>
+  <div class="gut"><div class="wrap hd">
+    <div class="logo"><div class="logo-ic"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><polygon points="13,2 4,14 11,14 11,22 20,10 13,10" fill="#fff"/></svg></div>ENOLA<i>·</i>RUN CLUB</div>
+    <div class="sync" id="sync" aria-live="polite"></div>
+  </div></div>
+</header>
+
+<section class="hero"><div class="gut"><div class="wrap" style="position:relative">
+  <div class="mark" aria-hidden="true">VMA 11</div>
+  <div class="hero-tag">Programme personnalisé · 12 semaines · 2 séances par semaine</div>
+  <h1>PROG<br><span>ENOLA</span></h1>
+  <p>Un programme route construit sur une VMA de 11 km/h, pensé pour une athlète HYROX qui veut que courir devienne facile. Une séance de fractionné, une séance d'endurance. Après chaque séance, tu notes tes sensations pour suivre ta progression.</p>
+  <div class="hstats">
+    <div class="hs"><b>12</b><span>Semaines</span></div>
+    <div class="hs"><b>2</b><span>Séances / sem</span></div>
+    <div class="hs"><b>5:27</b><span>Allure VMA /km</span></div>
+    <div class="hs"><b id="h-done">0/24</b><span>Séances faites</span></div>
+  </div>
+</div></div></section>
+
+<nav><div class="gut"><div class="wrap tabs" role="tablist">
+  <button class="tab on" role="tab" data-tab="programme">Programme</button>
+  <button class="tab" role="tab" data-tab="stats">Progression</button>
+  <button class="tab" role="tab" data-tab="allures">Allures</button>
+  <button class="tab" role="tab" data-tab="conseils">Conseils</button>
+  <button class="tab" role="tab" data-tab="profil">Profil</button>
+</div></div></nav>
+
+<main class="gut"><div class="wrap">
+  <div class="pane on" id="pane-programme">
+    <p class="intro">Ouvre une semaine pour voir ses deux séances. Sous chaque séance, choisis ton ressenti puis écris un commentaire si tu veux. Tout s'enregistre automatiquement.</p>
+    <div class="panel" id="panel"></div>
+    <div id="weeks"></div>
+  </div>
+  <div class="pane" id="pane-stats"></div>
+  <div class="pane" id="pane-allures"></div>
+  <div class="pane" id="pane-conseils"></div>
+  <div class="pane" id="pane-profil"></div>
+</div></main>
+<script>
+// ─── DONNÉES ─────────────────────────────────────────────────────────────────
+// VMA 11 km/h = 5:27/km. Allures calculées en % de VMA.
+var FEELS = [
+  { v: 1, label: "Léger", css: "var(--s1)" },
+  { v: 2, label: "Modéré", css: "var(--s2)" },
+  { v: 3, label: "Difficile", css: "var(--s3)" },
+  { v: 4, label: "Très difficile", css: "var(--s4)" }
+];
+var PHASES = {
+  1: { name: "Phase 1 · Poser les bases", range: "Semaines 1-4" },
+  2: { name: "Phase 2 · Gagner en vitesse", range: "Semaines 5-8" },
+  3: { name: "Phase 3 · Courir comme en HYROX", range: "Semaines 9-12" }
+};
+function I(n, name, dur, km, desc, tags) { return { id: "w" + n + "-1", kind: "int", name: name, dur: dur, km: km, desc: desc, tags: tags }; }
+function E(n, name, dur, km, desc, tags) { return { id: "w" + n + "-2", kind: "end", name: name, dur: dur, km: km, desc: desc, tags: tags }; }
+var EASY = "Allure de conversation : tu dois pouvoir parler en phrases complètes. Si tu es essoufflée, ralentis ou marche 30 secondes.";
+
+var WEEKS = [
+  { n: 1, ph: 1, title: "Premiers pas", sessions: [
+    I(1, "Fractionné court 30/30", 30, 4.0, "Échauffement 12 min, puis 8 fois 30 s rapide (environ 90 m) alternées avec 30 s de trot très lent. Retour au calme 8 min.", ["Échauffement 12 min", "8 x 30 s / 30 s", "Rapide : 5:27/km", "Trot lent entre les répétitions", "Retour au calme 8 min"]),
+    E(1, "Footing facile", 30, 4.0, EASY, ["7:30 à 8:00/km", "30 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 2, ph: 1, title: "Prendre le rythme", sessions: [
+    I(2, "Fractionné court 30/30", 32, 4.3, "Même séance que la semaine 1 avec deux répétitions de plus. Reste régulière : la dernière doit ressembler à la première.", ["Échauffement 12 min", "10 x 30 s / 30 s", "Rapide : 5:27/km", "Retour au calme 8 min"]),
+    E(2, "Footing facile", 35, 4.5, EASY, ["7:30 à 8:00/km", "35 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 3, ph: 1, title: "Un peu plus long", sessions: [
+    I(3, "Fractionné court 30/30", 34, 4.6, "12 répétitions. Pense à relâcher les épaules et les mains pendant les phases rapides.", ["Échauffement 12 min", "12 x 30 s / 30 s", "Rapide : 5:27/km", "Retour au calme 8 min"]),
+    E(3, "Footing + 4 foulées", 40, 5.2, EASY + " Termine par 4 foulées relâchées de 15 secondes, récupération en marchant.", ["7:30 à 8:00/km", "40 min", "4 x 15 s de foulées"])
+  ]},
+  { n: 4, ph: 1, title: "Semaine allégée", rec: true, sessions: [
+    I(4, "Fractionné court allégé", 25, 3.2, "Volume réduit pour absorber le travail des trois premières semaines. 6 répétitions seulement, puis 4 foulées détendues.", ["Échauffement 10 min", "6 x 30 s / 30 s", "4 foulées de 15 s", "Retour au calme 6 min"]),
+    E(4, "Footing facile", 30, 4.0, "Séance de récupération. Cherche la fluidité plus que la distance.", ["7:30 à 8:00/km", "30 min", "Effort 3 sur 10"])
+  ]},
+  { n: 5, ph: 2, title: "400 m à l'aise", sessions: [
+    I(5, "Fractionné 400 m", 38, 5.0, "5 fois 400 m à 95 % de ta VMA, soit 2:18 par 400 m. Récupération en trottinant 1 min 30.", ["Échauffement 12 min", "5 x 400 m en 2:18", "Récup 1:30 trot", "Retour au calme 8 min"]),
+    E(5, "Footing facile", 40, 5.3, EASY, ["7:30 à 8:00/km", "40 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 6, ph: 2, title: "Une répétition de plus", sessions: [
+    I(6, "Fractionné 400 m", 40, 5.4, "6 fois 400 m à 2:18, récupération raccourcie à 1 min 15. Garde la même foulée sur toutes les répétitions.", ["Échauffement 12 min", "6 x 400 m en 2:18", "Récup 1:15 trot", "Retour au calme 8 min"]),
+    E(6, "Footing facile", 45, 5.9, EASY, ["7:30 à 8:00/km", "45 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 7, ph: 2, title: "Premières longues répétitions", sessions: [
+    I(7, "Fractionné 800 m", 45, 6.0, "4 fois 800 m à 90 % de ta VMA, soit environ 4:51 par 800 m (6:04/km). C'est une allure soutenue mais tenable.", ["Échauffement 12 min", "4 x 800 m en 4:51", "Récup 2:00 trot", "Retour au calme 8 min"]),
+    E(7, "Footing avec finish", 45, 6.0, "35 min en allure facile puis 10 min un peu plus vive, à 7:00/km. Tu finis la séance en te sentant bien.", ["35 min à 7:30/km", "10 min à 7:00/km", "Effort 4 à 5 sur 10"])
+  ]},
+  { n: 8, ph: 2, title: "Semaine allégée", rec: true, sessions: [
+    I(8, "Fractionné 400 m allégé", 32, 4.2, "5 fois 400 m à 2:18 avec récupération confortable de 1 min 30. Vise la qualité de foulée.", ["Échauffement 10 min", "5 x 400 m en 2:18", "Récup 1:30 trot", "Retour au calme 8 min"]),
+    E(8, "Footing facile", 35, 4.6, "Récupération. Les jambes doivent se sentir légères à la fin.", ["7:30 à 8:00/km", "35 min", "Effort 3 sur 10"])
+  ]},
+  { n: 9, ph: 3, title: "1 km à l'aise", sessions: [
+    I(9, "Fractionné 1 000 m", 50, 8.0, "5 fois 1 km à 85 % de ta VMA, soit 6:25 au km. Le format de course d'un HYROX, mais en mode contrôlé. Récupération 2 minutes en trottinant.", ["Échauffement 12 min", "5 x 1 000 m en 6:25", "Récup 2:00 trot", "Retour au calme 8 min"]),
+    E(9, "Footing facile long", 50, 6.5, EASY, ["7:30 à 8:00/km", "50 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 10, ph: 3, title: "Tenir l'allure", sessions: [
+    I(10, "Fractionné au seuil", 48, 7.5, "3 fois 8 minutes à environ 6:35/km, allure inconfortable mais maîtrisée où tu peux dire quelques mots. Récupération 2 minutes en trottinant.", ["Échauffement 12 min", "3 x 8 min à 6:35/km", "Récup 2:00 trot", "Retour au calme 8 min"]),
+    E(10, "Footing avec finish", 50, 6.6, "40 min en allure facile puis 10 min à 7:00/km.", ["40 min à 7:30/km", "10 min à 7:00/km", "Effort 4 à 5 sur 10"])
+  ]},
+  { n: 11, ph: 3, title: "Simulation HYROX", sessions: [
+    I(11, "Fractionné allure HYROX", 55, 9.0, "6 fois 1 km à 6:20/km, récupération 1 min 30 en trottinant. Pense à ta course : tu relances après chaque station.", ["Échauffement 12 min", "6 x 1 000 m en 6:20", "Récup 1:30 trot", "Retour au calme 8 min"]),
+    E(11, "Footing facile long", 55, 7.2, "La séance la plus longue du programme. Reste en allure de conversation du début à la fin.", ["7:30 à 8:00/km", "55 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 12, ph: 3, title: "Bilan et test", test: true, sessions: [
+    I(12, "Test des 6 minutes", 30, 4.5, "Échauffement 15 min avec 3 foulées. Puis cours 6 minutes à vitesse régulière, aussi vite que possible mais sans partir trop fort. Mesure ta distance : VMA (km/h) = distance en mètres divisée par 100. Retour au calme 10 min.", ["Échauffement 15 min", "6 min effort régulier", "VMA = distance (m) / 100", "Retour au calme 10 min"]),
+    E(12, "Footing repère", 30, 4.0, "Même séance que le footing de la semaine 1 : 30 minutes à 7:30-8:00/km. Compare ta sensation avec ce que tu avais noté au début.", ["7:30 à 8:00/km", "30 min", "Comme en semaine 1"])
+  ]}
+];
+WEEKS.forEach(function (w) { w.km = Math.round(w.sessions.reduce(function (a, s) { return a + s.km; }, 0) * 10) / 10; });
+
+var ALLURES = [
+  ["Footing facile", "70 à 73 %", "7:30 à 8:00", "Tu parles sans effort. Effort 3 à 4 sur 10."],
+  ["Footing vif", "75 %", "7:15 à 7:20", "Respiration marquée, conversation en courtes phrases."],
+  ["Seuil", "83 %", "6:35", "Quelques mots seulement. Effort 6 à 7 sur 10."],
+  ["Allure HYROX 1 km", "85 à 88 %", "6:20 à 6:25", "Tu pourrais la tenir longtemps, mais tu ne discutes plus."],
+  ["Fractionné long", "90 %", "6:04", "Répétitions de 800 m. Effort 7 à 8 sur 10."],
+  ["Fractionné court", "95 %", "5:44", "Répétitions de 400 m. Effort 8 sur 10."],
+  ["VMA", "100 %", "5:27", "Répétitions de 30 s. Effort 9 sur 10."]
+];
+var TIPS = [
+  ["01", "Le footing se parle", "Si tu ne peux pas tenir une conversation, tu vas trop vite. Ce rythme lent construit le confort que tu cherches, c'est le cœur du programme."],
+  ["02", "Place le fractionné loin des grosses séances de jambes", "Garde au moins 48 h entre une séance HYROX lourde (fentes, wall balls, sled) et le fractionné. Le footing facile peut se faire la veille ou le lendemain."],
+  ["03", "N'oublie jamais l'échauffement", "Les 12 minutes de footing lent avant le fractionné préparent les muscles et le souffle. C'est ce qui rend les répétitions agréables au lieu de pénibles."],
+  ["04", "Relâche le haut du corps", "Épaules basses, mains ouvertes, bras qui balancent sans crispation. Courir avec des petits pas rapides est plus économique que des grandes foulées."],
+  ["05", "Note honnêtement tes sensations", "Une séance difficile n'est pas un échec, elle fait partie des données. Les statistiques deviennent utiles quand les notes reflètent ce que tu as ressenti vraiment."],
+  ["06", "Respecte les semaines allégées", "Les semaines 4 et 8 sont là pour que ton corps assimile le travail. Ne les remplace pas par des séances plus dures."]
+];
+var PROFIL = [
+  ["Athlète", "Enola"], ["VMA", "11 km/h"], ["Allure VMA", "5:27 /km"], ["Pratique", "HYROX"],
+  ["Séances / semaine", "2 (1 fractionné)"], ["Terrain", "Route"], ["Durée", "12 semaines"], ["Objectif", "Être plus à l'aise en course"]
+];
+var PROFIL_NOTE = "Avec 11 km/h de VMA et une base de force solide grâce au HYROX, le but n'est pas la vitesse pure mais le confort. Le programme monte progressivement le volume en footing facile et fait travailler la VMA pour que l'allure facile paraisse de plus en plus aisée. Le dernier bloc utilise des répétitions de 1 km pour se rapprocher du format de course HYROX. À la semaine 12, un test des 6 minutes permet de recalculer ta VMA et de repartir sur de nouvelles allures.";
+// ─── STOCKAGE ────────────────────────────────────────────────────────────────
+var LS_KEY = "enola-run-club-v1";
+var LOGS = {};      // id -> { s: 0-4, c: "texte", at: ISO }
+var db = null, DL = null, chain = {}, noteTimers = {}, selWeek = null;
+
+function $(s, r) { return (r || document).querySelector(s); }
+function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fr1(x) { return (Math.round(x * 10) / 10).toFixed(1).replace(".", ","); }
+function dateFr(iso) { try { return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); } catch (e) { return ""; } }
+function setSync(t) { var el = $("#sync"); if (el) el.textContent = t; }
+
+function lsLoad() { try { var r = localStorage.getItem(LS_KEY); if (r) LOGS = JSON.parse(r) || {}; } catch (e) { LOGS = {}; } }
+function lsSave() { try { localStorage.setItem(LS_KEY, JSON.stringify(LOGS)); } catch (e) {} }
+
+function writeDb(id) {
+  if (!db) return;
+  var p = (chain[id] || Promise.resolve()).then(function () {
+    var cur = LOGS[id], ref = db.doc("logs/" + id);
+    if (!cur) return ref.delete();
+    return ref.set({ s: cur.s, c: cur.c, at: cur.at });
+  }).then(function () { setSync("Synchronisé"); })
+    .catch(function () { setSync("Enregistré sur cet appareil"); });
+  chain[id] = p;
+}
+function persist(id) { lsSave(); writeDb(id); if (!db) setSync("Enregistré sur cet appareil"); }
+
+async function initDb() {
+  try { if (window.claude && window.claude.use) db = await window.claude.use("db"); } catch (e) { db = null; }
+  try { if (window.claude && window.claude.use) DL = await window.claude.use("downloads"); } catch (e) { DL = null; }
+  renderStats();
+  if (!db) { setSync("Enregistré sur cet appareil"); return; }
+  var first = true;
+  var timer = setTimeout(function () { setSync("Synchronisation en cours"); }, 10000);
+  db.collection("logs").onSnapshot(function (snap) {
+    clearTimeout(timer);
+    var changed = false, seen = {};
+    snap.docs.forEach(function (d) {
+      var v = d.data(); if (!v) return;
+      seen[d.id] = v;
+      var cur = LOGS[d.id];
+      if (!cur || String(v.at || "") > String(cur.at || "")) { LOGS[d.id] = { s: v.s || 0, c: v.c || "", at: v.at || "" }; changed = true; }
+    });
+    snap.docChanges().forEach(function (ch) { if (ch.type === "removed" && LOGS[ch.doc.id]) { delete LOGS[ch.doc.id]; changed = true; } });
+    if (first) {
+      first = false;
+      Object.keys(LOGS).forEach(function (id) { var s = seen[id]; if (!s || String(LOGS[id].at || "") > String(s.at || "")) writeDb(id); });
+    }
+    if (!snap.metadata.fromCache) setSync("Synchronisé");
+    if (changed) { lsSave(); refresh(); }
+  }, function () { clearTimeout(timer); db = null; setSync("Enregistré sur cet appareil"); });
+}
+
+// ─── ACTIONS ─────────────────────────────────────────────────────────────────
+function findSession(id) { for (var i = 0; i < WEEKS.length; i++) for (var j = 0; j < 2; j++) if (WEEKS[i].sessions[j].id === id) return { w: WEEKS[i], s: WEEKS[i].sessions[j] }; return null; }
+function isDone(id) { return !!(LOGS[id] && LOGS[id].s > 0); }
+function setFeel(id, v) { var c = LOGS[id] ? LOGS[id].c : ""; LOGS[id] = { s: v, c: c, at: new Date().toISOString() }; persist(id); refresh(); }
+function setNote(id, text) {
+  var s = LOGS[id] ? LOGS[id].s : 0;
+  if (!text && !s) { delete LOGS[id]; } else { LOGS[id] = { s: s, c: text, at: new Date().toISOString() }; }
+  persist(id); refreshLight(id);
+}
+function clearLog(id) { delete LOGS[id]; persist(id); var ta = $('.note[data-id="' + id + '"]'); if (ta) ta.value = ""; refresh(); }
+
+// ─── RENDU : PROGRAMME ───────────────────────────────────────────────────────
+function renderWeeks() {
+  var html = "", cur = 0;
+  WEEKS.forEach(function (w) {
+    if (w.ph !== cur) { if (cur) html += "</div>"; cur = w.ph; html += '<div class="phase">' + PHASES[cur].name + "<span>" + PHASES[cur].range + '</span></div><div class="grid">'; }
+    var a = w.sessions[0], b = w.sessions[1];
+    html += '<button class="wk' + (w.rec ? " rec" : "") + (selWeek === w.n ? " sel" : "") + '" data-week="' + w.n + '">' +
+      '<div class="wk-n">SEMAINE ' + w.n + '</div><div class="wk-t">' + esc(w.title) + "</div>" +
+      '<div class="wk-s"><span class="chip' + (isDone(a.id) ? " done" : "") + '" title="Fractionné">FRAC</span>' +
+      '<span class="chip end' + (isDone(b.id) ? " done" : "") + '" title="Endurance">ENDU</span></div>' +
+      '<div class="wk-v">' + fr1(w.km) + " km</div>" +
+      (w.rec ? '<span class="badge">Allégée</span>' : "") + (w.test ? '<span class="badge test">Test</span>' : "") + "</button>";
+  });
+  $("#weeks").innerHTML = html + "</div>";
+}
+function sessionHtml(s) {
+  var btns = FEELS.map(function (f) {
+    return '<button class="fb" style="--c:' + f.css + '" data-id="' + s.id + '" data-v="' + f.v + '" aria-pressed="false"><i></i>' + f.label + "</button>";
+  }).join("");
+  var tags = s.tags.map(function (t) { return '<span class="tag">' + esc(t) + "</span>"; }).join("");
+  var end = s.kind === "end";
+  return '<div class="sess"><div class="sh"><span class="ty' + (end ? " end" : "") + '">' + (end ? "Endurance" : "Fractionné") + "</span>" +
+    '<span class="sn">' + esc(s.name) + '</span><span class="sd">' + s.dur + " min · ~" + fr1(s.km) + " km</span></div>" +
+    '<div class="sb"><p class="desc">' + esc(s.desc) + '</p><div class="tags">' + tags + "</div>" +
+    '<div class="log"><div class="log-t">Mes sensations</div><div class="feel">' + btns + "</div>" +
+    '<textarea class="note" data-id="' + s.id + '" id="note-' + s.id + '" aria-label="Commentaire libre" placeholder="Commentaire libre : jambes, souffle, météo, motivation…"></textarea>' +
+    '<div class="meta"><span data-meta="' + s.id + '"></span><button class="lnk" data-clear="' + s.id + '">Effacer</button></div></div></div></div>';
+}
+function openWeek(n) {
+  var w = WEEKS[n - 1], p = $("#panel");
+  if (p.classList.contains("on") && selWeek === n) { closeWeek(); return; }
+  selWeek = n;
+  p.innerHTML = '<div class="ph"><div><small>SEMAINE ' + n + " · " + fr1(w.km) + ' KM</small><h2>' + esc(w.title) + '</h2></div><button class="x" data-close="1" aria-label="Fermer">✕</button></div>' +
+    w.sessions.map(sessionHtml).join("");
+  p.classList.add("on");
+  w.sessions.forEach(function (s) { var ta = $("#note-" + s.id); if (ta && LOGS[s.id]) ta.value = LOGS[s.id].c || ""; });
+  syncSessionUI(); renderWeeks();
+  p.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function closeWeek() { selWeek = null; $("#panel").classList.remove("on"); renderWeeks(); }
+
+function syncSessionUI(skipId) {
+  $$(".fb").forEach(function (b) { var l = LOGS[b.dataset.id]; b.setAttribute("aria-pressed", l && l.s === +b.dataset.v ? "true" : "false"); });
+  $$("[data-meta]").forEach(function (m) {
+    var l = LOGS[m.dataset.meta];
+    m.textContent = l && l.s ? "Enregistré le " + dateFr(l.at) : (l && l.c ? "Commentaire enregistré, choisis aussi un ressenti" : "Pas encore noté");
+  });
+  $$(".note").forEach(function (ta) {
+    if (document.activeElement === ta || ta.dataset.id === skipId) return;
+    var v = LOGS[ta.dataset.id] ? LOGS[ta.dataset.id].c : "";
+    if (ta.value !== v) ta.value = v;
+  });
+}
+function refreshLight(id) { syncSessionUI(id); renderHero(); renderStats(); }
+function refresh() { renderHero(); renderWeeks(); syncSessionUI(); renderStats(); }
+function renderHero() {
+  var n = 0; WEEKS.forEach(function (w) { w.sessions.forEach(function (s) { if (isDone(s.id)) n++; }); });
+  $("#h-done").textContent = n + "/24";
+}
+// ─── RENDU : PROGRESSION ─────────────────────────────────────────────────────
+function entriesList() {
+  var out = [];
+  WEEKS.forEach(function (w) { w.sessions.forEach(function (s) { if (isDone(s.id)) out.push({ w: w, s: s, kind: s.kind, v: LOGS[s.id].s }); }); });
+  return out;
+}
+function avgOf(a) { return a.length ? a.reduce(function (x, e) { return x + e.v; }, 0) / a.length : null; }
+function labelOf(v) { return FEELS[Math.min(4, Math.max(1, Math.round(v))) - 1].label; }
+function trendOf(list) {
+  if (list.length < 4) return null;
+  var h = Math.floor(list.length / 2);
+  var a = avgOf(list.slice(0, h)), b = avgOf(list.slice(list.length - h));
+  return { a: a, b: b, d: b - a };
+}
+function chartSvg(entries) {
+  var W = 720, H = 290, L = 104, R = 24, T = 18, B = 50, iw = W - L - R, ih = H - T - B;
+  function X(n) { return L + (n - 1) * iw / 11; }
+  function Y(v) { return T + ih - (v - 1) * ih / 3; }
+  var g = "";
+  FEELS.forEach(function (f) {
+    g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(f.v) + '" y2="' + Y(f.v) + '" style="stroke:var(--line)" stroke-dasharray="3 4"/>' +
+      '<text x="' + (L - 10) + '" y="' + (Y(f.v) + 4) + '" text-anchor="end" font-size="11" style="fill:var(--muted)">' + f.label + "</text>";
+  });
+  WEEKS.forEach(function (w) {
+    g += '<text x="' + X(w.n) + '" y="' + (H - 26) + '" text-anchor="middle" font-size="11" style="fill:var(--muted)">S' + w.n + "</text>";
+    var tag = w.rec ? "allégée" : (w.test ? "bilan" : "");
+    if (tag) g += '<text x="' + X(w.n) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="9" style="fill:var(--muted)">' + tag + "</text>";
+  });
+  [["int", "var(--bordeaux)", "Fractionné"], ["end", "var(--blue)", "Endurance"]].forEach(function (k) {
+    var pts = entries.filter(function (e) { return e.kind === k[0]; });
+    if (pts.length > 1) g += '<polyline fill="none" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="stroke:' + k[1] + '" points="' +
+      pts.map(function (e) { return X(e.w.n) + "," + Y(e.v); }).join(" ") + '"/>';
+    pts.forEach(function (e) {
+      g += '<circle cx="' + X(e.w.n) + '" cy="' + Y(e.v) + '" r="5.5" stroke-width="2" style="fill:' + k[1] + ';stroke:var(--card)"><title>S' + e.w.n + " " + k[2] + " : " + labelOf(e.v) + "</title></circle>";
+    });
+  });
+  return '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" style="min-width:560px;display:block" role="img" aria-label="Ressenti par semaine, fractionné et endurance">' + g + "</svg>";
+}
+function csvExport() {
+  var rows = [["semaine", "seance", "type", "ressenti", "score", "commentaire", "date"]];
+  WEEKS.forEach(function (w) { w.sessions.forEach(function (s) {
+    var l = LOGS[s.id]; if (!l) return;
+    rows.push([w.n, s.name, s.kind === "int" ? "Fractionné" : "Endurance", l.s ? labelOf(l.s) : "", l.s || "", l.c || "", l.at || ""]);
+  }); });
+  var csv = rows.map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(","); }).join("\n");
+  var data = "\ufeff" + csv;
+  if (DL) { DL.save({ filename: "enola-sensations.csv", data: data }).catch(function () {}); return; }
+  try {
+    var url = URL.createObjectURL(new Blob([data], { type: "text/csv;charset=utf-8" }));
+    var a = document.createElement("a"); a.href = url; a.download = "enola-sensations.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  } catch (e) {}
+}
+function renderStats() {
+  var el = $("#pane-stats"); if (!el) return;
+  var en = entriesList(), ints = en.filter(function (e) { return e.kind === "int"; }), ends = en.filter(function (e) { return e.kind === "end"; });
+  var all = avgOf(en), ai = avgOf(ints), ae = avgOf(ends);
+  var h = '<div class="kpis">' +
+    '<div class="kpi"><b>' + en.length + '<small> / 24</small></b><span>Séances faites, soit ' + Math.round(en.length / 24 * 100) + " % du programme</span></div>" +
+    '<div class="kpi"><b>' + (all === null ? "–" : fr1(all) + "<small> / 4</small>") + "</b><span>Ressenti moyen" + (all === null ? "" : ", plutôt " + labelOf(all)) + "</span></div>" +
+    '<div class="kpi"><b>' + (ae === null ? "–" : fr1(ae) + "<small> / 4</small>") + "</b><span>Endurance : " + ends.length + " séance" + (ends.length > 1 ? "s" : "") + " notée" + (ends.length > 1 ? "s" : "") + "</span></div>" +
+    '<div class="kpi"><b>' + (ai === null ? "–" : fr1(ai) + "<small> / 4</small>") + "</b><span>Fractionné : " + ints.length + " séance" + (ints.length > 1 ? "s" : "") + " notée" + (ints.length > 1 ? "s" : "") + "</span></div></div>";
+
+  var t = trendOf(ends), msg;
+  if (!t) msg = "Note au moins 4 séances d'endurance pour voir si tes footings te paraissent de plus en plus faciles.";
+  else if (t.d <= -0.4) msg = "Tes footings te paraissent plus faciles : le ressenti moyen est passé de " + fr1(t.a) + " (début) à " + fr1(t.b) + " (récent). C'est l'effet recherché par le programme.";
+  else if (t.d >= 0.4) msg = "Tes footings te paraissent plus difficiles qu'au début (" + fr1(t.a) + " puis " + fr1(t.b) + "). Cela peut venir de la fatigue de la semaine ou d'une allure trop vive : ralentis un peu et dis-le dans les commentaires.";
+  else msg = "Ton ressenti en footing est stable (" + fr1(t.a) + " puis " + fr1(t.b) + "). Les progrès apparaissent souvent après les semaines allégées.";
+  if (isDone("w1-2") && isDone("w12-2")) msg += " Footing repère : " + labelOf(LOGS["w1-2"].s) + " en semaine 1, " + labelOf(LOGS["w12-2"].s) + " en semaine 12.";
+  h += '<div class="verdict">' + msg + "</div>";
+
+  h += '<div class="box"><div class="row" style="justify-content:space-between"><div><h3>Ressenti par semaine</h3><div class="sub">Plus le point est bas, plus la séance a été facile. Une courbe qui descend alors que le volume monte montre que tu progresses.</div></div>' +
+    '<button class="btn ghost" id="csv">Exporter en CSV</button>' + "</div>" +
+    '<div class="legend"><span><i style="background:var(--bordeaux)"></i>Fractionné</span><span><i style="background:var(--blue)"></i>Endurance</span></div>' +
+    '<div class="chartwrap">' + chartSvg(en) + "</div>" +
+    (en.length ? "" : '<div class="empty">Le graphique se remplit dès ta première séance notée.</div>') + "</div>";
+
+  var dist = FEELS.map(function (f) {
+    var n = en.filter(function (e) { return e.v === f.v; }).length;
+    return '<div class="drow" style="--c:' + f.css + '"><span>' + f.label + '</span><div class="dtrack"><div class="dfill" style="width:' + (en.length ? n / en.length * 100 : 0) + '%"></div></div><span class="n">' + n + "</span></div>";
+  }).join("");
+  h += '<div class="box"><h3>Répartition des sensations</h3><div class="sub">Nombre de séances par niveau de ressenti.</div><div class="dist">' + dist + "</div></div>";
+
+  var rows = [1, 2, 3].map(function (p) {
+    var pe = en.filter(function (e) { return e.w.ph === p; });
+    var a = avgOf(pe.filter(function (e) { return e.kind === "int"; })), b = avgOf(pe.filter(function (e) { return e.kind === "end"; }));
+    return "<tr><td>" + PHASES[p].name.split(" · ")[1] + '</td><td class="m">' + pe.length + " / 8</td><td>" + (a === null ? "–" : fr1(a) + " · " + labelOf(a)) + "</td><td>" + (b === null ? "–" : fr1(b) + " · " + labelOf(b)) + "</td></tr>";
+  }).join("");
+  h += '<div class="box"><h3>Résumé par phase</h3><div class="sub">Ressenti moyen sur 4 pour chaque type de séance.</div><div class="chartwrap"><table><thead><tr><th>Phase</th><th>Faites</th><th>Fractionné</th><th>Endurance</th></tr></thead><tbody>' + rows + "</tbody></table></div></div>";
+
+  var logs = [];
+  WEEKS.forEach(function (w) { w.sessions.forEach(function (s) { var l = LOGS[s.id]; if (l && (l.s || l.c)) logs.push({ w: w, s: s, l: l }); }); });
+  logs.sort(function (a, b) { return String(b.l.at).localeCompare(String(a.l.at)); });
+  var jr = logs.map(function (e) {
+    var f = e.l.s ? FEELS[e.l.s - 1] : null;
+    return '<div class="je"><div class="je-h">' + (f ? '<span class="pill" style="--c:' + f.css + '">' + f.label + "</span>" : "") +
+      "<b>S" + e.w.n + " · " + esc(e.s.name) + '</b><span class="je-d">' + dateFr(e.l.at) + "</span></div>" + (e.l.c ? "<p>" + esc(e.l.c) + "</p>" : "") + "</div>";
+  }).join("");
+  h += '<div class="box"><h3>Journal de bord</h3><div class="sub">Tous tes commentaires, du plus récent au plus ancien.</div>' +
+    (jr ? '<div class="jr">' + jr + "</div>" : '<div class="empty">Tes commentaires apparaîtront ici.</div>') + "</div>";
+  el.innerHTML = h;
+  var b = $("#csv"); if (b) b.onclick = csvExport;
+}
+
+// ─── RENDU : AUTRES ONGLETS ──────────────────────────────────────────────────
+function renderStatic() {
+  var rows = ALLURES.map(function (a) { return "<tr><td><b>" + a[0] + "</b></td><td>" + a[1] + '</td><td class="m">' + a[2] + "</td><td>" + a[3] + "</td></tr>"; }).join("");
+  $("#pane-allures").innerHTML = '<p class="intro">Les allures sont calculées à partir de ta VMA de 11 km/h, soit 5:27 par km. Elles sont exprimées en minutes par kilomètre. Au fil du programme, ajuste-les au ressenti plutôt qu’à la montre.</p>' +
+    '<div class="box"><div class="chartwrap"><table style="min-width:620px"><thead><tr><th>Type</th><th>% VMA</th><th>Allure /km</th><th>Sensation</th></tr></thead><tbody>' + rows + "</tbody></table></div></div>" +
+    '<div class="tip"><div class="tip-ic">TEST</div><div><div class="tip-t">Recalculer ta VMA</div><div class="tip-x">Le test des 6 minutes de la semaine 12 donne ta nouvelle VMA : distance parcourue en mètres divisée par 100. Par exemple, 1 150 m en 6 minutes donne 11,5 km/h, soit une allure VMA de 5:13/km.</div></div></div>';
+  $("#pane-conseils").innerHTML = TIPS.map(function (t) { return '<div class="tip"><div class="tip-ic">' + t[0] + '</div><div><div class="tip-t">' + t[1] + '</div><div class="tip-x">' + t[2] + "</div></div></div>"; }).join("");
+  $("#pane-profil").innerHTML = '<div class="pcard">' + PROFIL.map(function (p) { return '<div class="pf"><span>' + p[0] + "</span><b>" + p[1] + "</b></div>"; }).join("") + "</div>" +
+    '<div class="tip"><div class="tip-ic">PRO</div><div><div class="tip-t">Analyse du profil</div><div class="tip-x">' + PROFIL_NOTE + "</div></div></div>";
+}
+
+// ─── ÉVÉNEMENTS ──────────────────────────────────────────────────────────────
+document.addEventListener("click", function (e) {
+  var t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.tab) {
+    $$(".tab").forEach(function (b) { b.classList.toggle("on", b === t); });
+    $$(".pane").forEach(function (p) { p.classList.toggle("on", p.id === "pane-" + t.dataset.tab); });
+  } else if (t.dataset.week) openWeek(+t.dataset.week);
+  else if (t.dataset.close) closeWeek();
+  else if (t.dataset.v) setFeel(t.dataset.id, +t.dataset.v);
+  else if (t.dataset.clear) clearLog(t.dataset.clear);
+});
+document.addEventListener("input", function (e) {
+  var ta = e.target; if (!ta.classList || !ta.classList.contains("note")) return;
+  var id = ta.dataset.id; clearTimeout(noteTimers[id]);
+  noteTimers[id] = setTimeout(function () { setNote(id, ta.value.trim()); }, 700);
+});
+lsLoad(); renderStatic(); refresh(); initDb();
+</script>
+
+</body></html>
