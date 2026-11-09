@@ -148,6 +148,15 @@ th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--lin
 th { font: 500 11px var(--body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 td.m { font-family: var(--mono); color: var(--bordeaux); }
 @media (max-width: 600px) { .grid { grid-template-columns: 1fr 1fr; } .mark { display: none; } .drow { grid-template-columns: 80px 1fr 28px; } }
+.progs { display: flex; gap: 4px; padding: 4px; margin-top: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; max-width: 420px; }
+.pg { flex: 1; background: none; border: 0; border-radius: 9px; padding: 8px 10px; font: 400 17px var(--display); letter-spacing: .06em; color: var(--muted); cursor: pointer; }
+.pg:hover { color: var(--fg); }
+.pg.on { background: var(--bordeaux); color: var(--card); }
+.pg:focus-visible { outline: 2px solid var(--bordeaux-mid); outline-offset: 2px; }
+.chip.spe, .ty.spe { background: var(--amber-pale); color: var(--amber); }
+.chip.race, .ty.race { background: var(--green-pale); color: var(--green); }
+.panel { scroll-margin-top: calc(170px + env(safe-area-inset-top, 0px)); }
+.wk.race { border-color: color-mix(in srgb, var(--green) 45%, var(--line)); }
 </style>
 
 <header>
@@ -157,30 +166,25 @@ td.m { font-family: var(--mono); color: var(--bordeaux); }
   </div></div>
 </header>
 
-<section class="hero"><div class="gut"><div class="wrap" style="position:relative">
-  <div class="mark" aria-hidden="true">VMA 11</div>
-  <div class="hero-tag">Programme personnalisé · 12 semaines · 2 séances par semaine</div>
-  <h1>PROG<br><span>ENOLA</span></h1>
-  <p>Un programme route construit sur une VMA de 11 km/h, pensé pour une athlète HYROX qui veut que courir devienne facile. Une séance de fractionné, une séance d'endurance. Après chaque séance, tu notes tes sensations pour suivre ta progression.</p>
-  <div class="hstats">
-    <div class="hs"><b>12</b><span>Semaines</span></div>
-    <div class="hs"><b>2</b><span>Séances / sem</span></div>
-    <div class="hs"><b>5:27</b><span>Allure VMA /km</span></div>
-    <div class="hs"><b id="h-done">0/24</b><span>Séances faites</span></div>
-  </div>
-</div></div></section>
+<section class="hero"><div class="gut"><div class="wrap" id="hero" style="position:relative"></div></div></section>
 
-<nav><div class="gut"><div class="wrap tabs" role="tablist">
-  <button class="tab on" role="tab" data-tab="programme">Programme</button>
-  <button class="tab" role="tab" data-tab="stats">Progression</button>
-  <button class="tab" role="tab" data-tab="allures">Allures</button>
-  <button class="tab" role="tab" data-tab="conseils">Conseils</button>
-  <button class="tab" role="tab" data-tab="profil">Profil</button>
+<nav><div class="gut"><div class="wrap">
+  <div class="progs" role="tablist" aria-label="Choix du programme">
+    <button class="pg" role="tab" data-prog="hyrox">Prépa HYROX</button>
+    <button class="pg" role="tab" data-prog="dixk">Prépa 10 km</button>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab on" role="tab" data-tab="programme">Programme</button>
+    <button class="tab" role="tab" data-tab="stats">Progression</button>
+    <button class="tab" role="tab" data-tab="allures">Allures</button>
+    <button class="tab" role="tab" data-tab="conseils">Conseils</button>
+    <button class="tab" role="tab" data-tab="profil">Profil</button>
+  </div>
 </div></div></nav>
 
 <main class="gut"><div class="wrap">
   <div class="pane on" id="pane-programme">
-    <p class="intro">Ouvre une semaine pour voir ses deux séances. Sous chaque séance, choisis ton ressenti puis écris un commentaire si tu veux. Tout s'enregistre automatiquement.</p>
+    <p class="intro" id="prog-intro"></p>
     <div class="panel" id="panel"></div>
     <div id="weeks"></div>
   </div>
@@ -190,15 +194,14 @@ td.m { font-family: var(--mono); color: var(--bordeaux); }
   <div class="pane" id="pane-profil"></div>
 </div></main>
 <script>
-// ─── DONNÉES ─────────────────────────────────────────────────────────────────
-// VMA 11 km/h = 5:27/km. Allures calculées en % de VMA.
+// ─── DONNÉES : PRÉPA HYROX (inchangées) ──────────────────────────────────────
 var FEELS = [
   { v: 1, label: "Léger", css: "var(--s1)" },
   { v: 2, label: "Modéré", css: "var(--s2)" },
   { v: 3, label: "Difficile", css: "var(--s3)" },
   { v: 4, label: "Très difficile", css: "var(--s4)" }
 ];
-var PHASES = {
+var HY_PHASES = {
   1: { name: "Phase 1 · Poser les bases", range: "Semaines 1-4" },
   2: { name: "Phase 2 · Gagner en vitesse", range: "Semaines 5-8" },
   3: { name: "Phase 3 · Courir comme en HYROX", range: "Semaines 9-12" }
@@ -207,7 +210,7 @@ function I(n, name, dur, km, desc, tags) { return { id: "w" + n + "-1", kind: "i
 function E(n, name, dur, km, desc, tags) { return { id: "w" + n + "-2", kind: "end", name: name, dur: dur, km: km, desc: desc, tags: tags }; }
 var EASY = "Allure de conversation : tu dois pouvoir parler en phrases complètes. Si tu es essoufflée, ralentis ou marche 30 secondes.";
 
-var WEEKS = [
+var HY_WEEKS = [
   { n: 1, ph: 1, title: "Premiers pas", sessions: [
     I(1, "Fractionné court 30/30", 30, 4.0, "Échauffement 12 min, puis 8 fois 30 s rapide (environ 90 m) alternées avec 30 s de trot très lent. Retour au calme 8 min.", ["Échauffement 12 min", "8 x 30 s / 30 s", "Rapide : 5:27/km", "Trot lent entre les répétitions", "Retour au calme 8 min"]),
     E(1, "Footing facile", 30, 4.0, EASY, ["7:30 à 8:00/km", "30 min", "Effort 3 à 4 sur 10"])
@@ -257,9 +260,8 @@ var WEEKS = [
     E(12, "Footing repère", 30, 4.0, "Même séance que le footing de la semaine 1 : 30 minutes à 7:30-8:00/km. Compare ta sensation avec ce que tu avais noté au début.", ["7:30 à 8:00/km", "30 min", "Comme en semaine 1"])
   ]}
 ];
-WEEKS.forEach(function (w) { w.km = Math.round(w.sessions.reduce(function (a, s) { return a + s.km; }, 0) * 10) / 10; });
 
-var ALLURES = [
+var HY_ALLURES = [
   ["Footing facile", "70 à 73 %", "7:30 à 8:00", "Tu parles sans effort. Effort 3 à 4 sur 10."],
   ["Footing vif", "75 %", "7:15 à 7:20", "Respiration marquée, conversation en courtes phrases."],
   ["Seuil", "83 %", "6:35", "Quelques mots seulement. Effort 6 à 7 sur 10."],
@@ -268,7 +270,7 @@ var ALLURES = [
   ["Fractionné court", "95 %", "5:44", "Répétitions de 400 m. Effort 8 sur 10."],
   ["VMA", "100 %", "5:27", "Répétitions de 30 s. Effort 9 sur 10."]
 ];
-var TIPS = [
+var HY_TIPS = [
   ["01", "Le footing se parle", "Si tu ne peux pas tenir une conversation, tu vas trop vite. Ce rythme lent construit le confort que tu cherches, c'est le cœur du programme."],
   ["02", "Place le fractionné loin des grosses séances de jambes", "Garde au moins 48 h entre une séance HYROX lourde (fentes, wall balls, sled) et le fractionné. Le footing facile peut se faire la veille ou le lendemain."],
   ["03", "N'oublie jamais l'échauffement", "Les 12 minutes de footing lent avant le fractionné préparent les muscles et le souffle. C'est ce qui rend les répétitions agréables au lieu de pénibles."],
@@ -276,11 +278,137 @@ var TIPS = [
   ["05", "Note honnêtement tes sensations", "Une séance difficile n'est pas un échec, elle fait partie des données. Les statistiques deviennent utiles quand les notes reflètent ce que tu as ressenti vraiment."],
   ["06", "Respecte les semaines allégées", "Les semaines 4 et 8 sont là pour que ton corps assimile le travail. Ne les remplace pas par des séances plus dures."]
 ];
-var PROFIL = [
+var HY_PROFIL = [
   ["Athlète", "Enola"], ["VMA", "11 km/h"], ["Allure VMA", "5:27 /km"], ["Pratique", "HYROX"],
   ["Séances / semaine", "2 (1 fractionné)"], ["Terrain", "Route"], ["Durée", "12 semaines"], ["Objectif", "Être plus à l'aise en course"]
 ];
-var PROFIL_NOTE = "Avec 11 km/h de VMA et une base de force solide grâce au HYROX, le but n'est pas la vitesse pure mais le confort. Le programme monte progressivement le volume en footing facile et fait travailler la VMA pour que l'allure facile paraisse de plus en plus aisée. Le dernier bloc utilise des répétitions de 1 km pour se rapprocher du format de course HYROX. À la semaine 12, un test des 6 minutes permet de recalculer ta VMA et de repartir sur de nouvelles allures.";
+var HY_PROFIL_NOTE = "Avec 11 km/h de VMA et une base de force solide grâce au HYROX, le but n'est pas la vitesse pure mais le confort. Le programme monte progressivement le volume en footing facile et fait travailler la VMA pour que l'allure facile paraisse de plus en plus aisée. Le dernier bloc utilise des répétitions de 1 km pour se rapprocher du format de course HYROX. À la semaine 12, un test des 6 minutes permet de recalculer ta VMA et de repartir sur de nouvelles allures.";
+// ─── DONNÉES : PRÉPA 10 KM ───────────────────────────────────────────────────
+// Dernier 10 km : 1h19 (7:54/km). Objectif : 1h12 (7:12/km, environ 76 % de VMA).
+function K(n, i, kind, name, dur, km, desc, tags) { return { id: "k" + n + "-" + i, kind: kind, name: name, dur: dur, km: km, desc: desc, tags: tags }; }
+var EASY10 = "Allure de conversation, entre 7:45 et 8:15/km. C'est plus lent que ton allure objectif, et c'est voulu : la sortie longue construit l'endurance qui te permettra de tenir 7:12 pendant 10 km.";
+var DK_PHASES = {
+  1: { name: "Phase 1 · Fondations", range: "Semaines 1-4" },
+  2: { name: "Phase 2 · Construire l'allure", range: "Semaines 5-8" },
+  3: { name: "Phase 3 · Spécifique et course", range: "Semaines 9-12" }
+};
+var DK_WEEKS = [
+  { n: 1, ph: 1, title: "Trouver le rythme", sessions: [
+    K(1, 1, "int", "Fractionné court 30/30", 32, 4.3, "Échauffement 12 min, puis 8 fois 30 s rapide alternées avec 30 s de trot très lent. Retour au calme 8 min.", ["Échauffement 12 min", "8 x 30 s / 30 s", "Rapide : 5:27/km", "Retour au calme 8 min"]),
+    K(1, 2, "long", "Sortie longue", 45, 5.6, EASY10, ["7:45 à 8:15/km", "45 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 2, ph: 1, title: "Découvrir l'allure", sessions: [
+    K(2, 1, "spe", "Découverte de l'allure 10 km", 40, 5.1, "Échauffement 12 min, puis 3 fois 5 min à 7:12/km avec 2 min de trot entre chaque. C'est l'allure de ton objectif : note comment elle te paraît aujourd'hui. Retour au calme 8 min.", ["Échauffement 12 min", "3 x 5 min à 7:12/km", "Récup 2:00 trot", "Retour au calme 8 min"]),
+    K(2, 2, "long", "Sortie longue", 50, 6.3, EASY10, ["7:45 à 8:15/km", "50 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 3, ph: 1, title: "Premiers 400 m", sessions: [
+    K(3, 1, "int", "Fractionné 400 m", 41, 5.8, "6 fois 400 m en 2:18 (95 % de VMA), récupération 1 min 30 en trottinant.", ["Échauffement 12 min", "6 x 400 m en 2:18", "Récup 1:30 trot", "Retour au calme 8 min"]),
+    K(3, 2, "long", "Sortie longue + 4 foulées", 55, 6.9, EASY10 + " Termine par 4 foulées relâchées de 15 secondes.", ["7:45 à 8:15/km", "55 min", "4 x 15 s de foulées"])
+  ]},
+  { n: 4, ph: 1, title: "Semaine allégée", rec: true, sessions: [
+    K(4, 1, "spe", "Allure 10 km allégée", 30, 3.9, "2 fois 6 min à 7:12/km, récupération 2 min. Juste pour garder l'allure en mémoire.", ["Échauffement 10 min", "2 x 6 min à 7:12/km", "Récup 2:00 trot", "Retour au calme 6 min"]),
+    K(4, 2, "long", "Sortie longue courte", 45, 5.6, "Récupération. Les jambes doivent se sentir légères à la fin.", ["7:45 à 8:15/km", "45 min", "Effort 3 sur 10"])
+  ]},
+  { n: 5, ph: 2, title: "Premiers 800 m", sessions: [
+    K(5, 1, "int", "Fractionné 800 m", 52, 7.4, "5 fois 800 m en 4:51 (90 % de VMA, 6:04/km), récupération 2 min en trottinant.", ["Échauffement 12 min", "5 x 800 m en 4:51", "Récup 2:00 trot", "Retour au calme 8 min"]),
+    K(5, 2, "long", "Sortie longue", 60, 7.5, EASY10, ["7:45 à 8:15/km", "60 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 6, ph: 2, title: "Entrer dans le seuil", sessions: [
+    K(6, 1, "spe", "Seuil 3 x 8 min", 48, 6.6, "3 fois 8 min à 6:35/km, un peu plus vite que ton allure 10 km. Inconfortable mais maîtrisé : tu peux dire quelques mots. Récupération 2 min.", ["Échauffement 12 min", "3 x 8 min à 6:35/km", "Récup 2:00 trot", "Retour au calme 8 min"]),
+    K(6, 2, "long", "Sortie longue", 65, 8.1, EASY10, ["7:45 à 8:15/km", "65 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 7, ph: 2, title: "Tenir 7:12 plus longtemps", sessions: [
+    K(7, 1, "spe", "3 x 2 km allure 10 km", 67, 9.0, "3 fois 2 km à 7:12/km (14:24 par bloc), récupération 2 min. Soit 6 km à ton allure objectif : plus de la moitié de la course.", ["Échauffement 12 min", "3 x 2 km en 14:24", "Récup 2:00 trot", "Retour au calme 8 min"]),
+    K(7, 2, "long", "Sortie longue avec finish", 65, 8.3, "55 min en allure facile, puis 10 min à 7:12/km. Tu apprends à tenir l'allure de course sur des jambes déjà fatiguées.", ["55 min à 7:45-8:15/km", "10 min à 7:12/km", "Effort 4 à 5 sur 10"])
+  ]},
+  { n: 8, ph: 2, title: "Semaine allégée", rec: true, sessions: [
+    K(8, 1, "int", "Fractionné 400 m allégé", 34, 4.7, "5 fois 400 m en 2:18, récupération confortable de 1 min 30.", ["Échauffement 10 min", "5 x 400 m en 2:18", "Récup 1:30 trot", "Retour au calme 6 min"]),
+    K(8, 2, "long", "Sortie longue courte", 50, 6.3, "Récupération. Cherche la fluidité plus que la distance.", ["7:45 à 8:15/km", "50 min", "Effort 3 sur 10"])
+  ]},
+  { n: 9, ph: 3, title: "Le gros bloc", sessions: [
+    K(9, 1, "int", "Fractionné 1 000 m", 52, 7.2, "4 fois 1 km en 6:25 (85 % de VMA), récupération 2 min.", ["Échauffement 12 min", "4 x 1 000 m en 6:25", "Récup 2:00 trot", "Retour au calme 8 min"]),
+    K(9, 2, "long", "Sortie longue avec finish", 75, 9.6, "60 min en allure facile, puis 15 min à 7:12/km. La sortie la plus longue du programme.", ["60 min à 7:45-8:15/km", "15 min à 7:12/km", "Effort 5 sur 10"])
+  ]},
+  { n: 10, ph: 3, title: "Seuil long", sessions: [
+    K(10, 1, "spe", "Seuil 2 x 12 min", 47, 6.5, "2 fois 12 min à 6:35/km, récupération 3 min. La séance la plus exigeante du programme.", ["Échauffement 12 min", "2 x 12 min à 6:35/km", "Récup 3:00 trot", "Retour au calme 8 min"]),
+    K(10, 2, "long", "Sortie longue", 70, 8.8, EASY10, ["7:45 à 8:15/km", "70 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 11, ph: 3, title: "Répétition générale", sessions: [
+    K(11, 1, "spe", "5 km allure course", 56, 7.5, "5 km d'affilée à 7:12/km (36:00). Teste ta tenue de course, tes chaussures et ton petit-déjeuner du jour J.", ["Échauffement 12 min", "5 km en 36:00", "Retour au calme 8 min"]),
+    K(11, 2, "long", "Sortie longue", 60, 7.5, EASY10, ["7:45 à 8:15/km", "60 min", "Effort 3 à 4 sur 10"])
+  ]},
+  { n: 12, ph: 3, title: "Semaine de course", race: true, sessions: [
+    K(12, 1, "spe", "Activation", 30, 4.0, "2 ou 3 jours avant la course. 15 min de footing, puis 3 fois 3 min à 7:12/km avec 2 min de trot entre chaque. Tu finis fraîche.", ["15 min footing", "3 x 3 min à 7:12/km", "Récup 2:00 trot", "Retour au calme 5 min"]),
+    K(12, 2, "race", "Course 10 km", 72, 10.0, "Échauffement 10 à 15 min de trot très lent avec 3 foulées. Les 2 premiers km à 7:20/km, même si tout le monde part plus vite. Du km 3 au km 8, cale-toi sur 7:12/km. Sur les 2 derniers km, accélère si tu te sens bien. Note ton chrono dans le commentaire.", ["Km 1-2 : 7:20/km", "Km 3-8 : 7:12/km", "Km 9-10 : ce qu'il te reste", "Objectif : 1h12"])
+  ]}
+];
+var DK_ALLURES = [
+  ["Footing et sortie longue", "67 à 71 %", "7:45 à 8:15", "Tu parles sans effort. Effort 3 à 4 sur 10."],
+  ["Allure 10 km objectif", "76 %", "7:12", "Soutenue mais régulière. Tu dis quelques phrases courtes."],
+  ["Seuil", "83 %", "6:35", "Quelques mots seulement. Effort 6 à 7 sur 10."],
+  ["Fractionné 1 000 m", "85 %", "6:25", "Répétitions de 1 km. Effort 7 sur 10."],
+  ["Fractionné 800 m", "90 %", "6:04", "Répétitions de 800 m. Effort 7 à 8 sur 10."],
+  ["Fractionné 400 m", "95 %", "5:44", "Répétitions de 400 m en 2:18. Effort 8 sur 10."],
+  ["VMA", "100 %", "5:27", "Répétitions de 30 s. Effort 9 sur 10."]
+];
+var DK_TIPS = [
+  ["01", "La sortie longue est la séance la plus importante", "C'est elle qui te fera tenir 10 km sans ralentir. Si tu dois sauter une séance dans la semaine, garde celle-là."],
+  ["02", "Apprends ton allure par cœur", "Les séances à 7:12/km servent à rendre cette allure automatique. Le jour J, tu dois la reconnaître sans regarder ta montre."],
+  ["03", "Ne pars pas trop vite le jour J", "L'erreur la plus courante sur 10 km. Partir à 6:45 sur le premier kilomètre peut te coûter plusieurs minutes à la fin. Les 2 premiers km à 7:20, c'est le plan."],
+  ["04", "Espace tes deux séances", "Garde au moins 48 h entre la séance de qualité (fractionné ou allure 10 km) et la sortie longue. Exemple : mercredi et dimanche."],
+  ["05", "Si tu continues le HYROX", "Ce programme remplace la partie course de ta prépa HYROX : ne fais pas les deux en même temps. Garde tes séances de force, mais évite les grosses séances de jambes la veille d'un fractionné ou d'une sortie longue."],
+  ["06", "La semaine de course", "Moins de volume, plus de sommeil. Pas de nouvelles chaussures ni de nouveau petit-déjeuner le jour J : tout doit avoir été testé en semaine 11."]
+];
+var DK_PROFIL = [
+  ["Athlète", "Enola"], ["VMA", "11 km/h"], ["Dernier 10 km", "1h19 (7:54 /km)"], ["Objectif", "1h12 (7:12 /km)"],
+  ["Séances / semaine", "2"], ["Terrain", "Route"], ["Durée", "12 semaines"], ["Gain visé", "7 minutes"]
+];
+var DK_PROFIL_NOTE = "Ton 10 km en 1h19 a été couru à 7:54/km, soit environ 69 % de ta VMA. Avec 11 km/h de VMA, une coureuse bien préparée peut tenir 76 % sur 10 km, ce qui donne 1h12. L'écart se joue surtout sur l'endurance : c'est pour ça que la sortie longue passe de 45 à 75 minutes. L'autre séance de la semaine alterne entre fractionné, pour rendre l'allure de course plus confortable, et séances à 7:12/km, pour l'apprendre. Si tes ressentis restent « Très difficile » sur les séances à allure 10 km en phase 2, on pourra viser 1h14 à la place.";
+
+// ─── CONFIGURATION DES PROGRAMMES ────────────────────────────────────────────
+var KINDS = {
+  int:  { label: "Fractionné", chip: "FRAC", cls: "", color: "var(--bordeaux)" },
+  end:  { label: "Endurance", chip: "ENDU", cls: "end", color: "var(--blue)" },
+  spe:  { label: "Allure 10 km", chip: "10K", cls: "spe", color: "var(--amber)" },
+  long: { label: "Sortie longue", chip: "LONG", cls: "end", color: "var(--blue)" },
+  race: { label: "Course", chip: "COURSE", cls: "race", color: "var(--green)" }
+};
+var PROGS = {
+  hyrox: {
+    weeks: HY_WEEKS, phases: HY_PHASES, kinds: ["int", "end"], allures: HY_ALLURES, tips: HY_TIPS, profil: HY_PROFIL, profilNote: HY_PROFIL_NOTE, csv: "enola-hyrox-sensations.csv",
+    hero: { mark: "VMA 11", tag: "Programme personnalisé · 12 semaines · 2 séances par semaine", h1: "PROG<br><span>ENOLA</span>",
+      p: "Un programme route construit sur une VMA de 11 km/h, pensé pour une athlète HYROX qui veut que courir devienne facile. Une séance de fractionné, une séance d'endurance. Après chaque séance, tu notes tes sensations pour suivre ta progression.",
+      stats: [["12", "Semaines"], ["2", "Séances / sem"], ["5:27", "Allure VMA /km"]] },
+    intro: "Ouvre une semaine pour voir ses deux séances. Sous chaque séance, choisis ton ressenti puis écris un commentaire si tu veux. Tout s'enregistre automatiquement.",
+    allIntro: "Les allures sont calculées à partir de ta VMA de 11 km/h, soit 5:27 par km. Elles sont exprimées en minutes par kilomètre. Au fil du programme, ajuste-les au ressenti plutôt qu’à la montre.",
+    allTip: ["TEST", "Recalculer ta VMA", "Le test des 6 minutes de la semaine 12 donne ta nouvelle VMA : distance parcourue en mètres divisée par 100. Par exemple, 1 150 m en 6 minutes donne 11,5 km/h, soit une allure VMA de 5:13/km."],
+    trend: { kind: "end",
+      empty: "Note au moins 4 séances d'endurance pour voir si tes footings te paraissent de plus en plus faciles.",
+      better: "Tes footings te paraissent plus faciles : le ressenti moyen est passé de {a} (début) à {b} (récent). C'est l'effet recherché par le programme.",
+      worse: "Tes footings te paraissent plus difficiles qu'au début ({a} puis {b}). Cela peut venir de la fatigue de la semaine ou d'une allure trop vive : ralentis un peu et dis-le dans les commentaires.",
+      stable: "Ton ressenti en footing est stable ({a} puis {b}). Les progrès apparaissent souvent après les semaines allégées." },
+    ref: ["w1-2", "w12-2", "Footing repère : {x} en semaine 1, {y} en semaine 12."]
+  },
+  dixk: {
+    weeks: DK_WEEKS, phases: DK_PHASES, kinds: ["int", "spe", "long"], allures: DK_ALLURES, tips: DK_TIPS, profil: DK_PROFIL, profilNote: DK_PROFIL_NOTE, csv: "enola-10km-sensations.csv",
+    hero: { mark: "10 KM", tag: "Prépa 10 km · 12 semaines · 2 séances par semaine", h1: "OBJECTIF<br><span>1H12</span>",
+      p: "Ton dernier 10 km : 1h19, soit 7:54 par km. L'objectif est de passer sous 1h12, soit 7:12 par km. Chaque semaine : une séance de qualité, fractionné ou allure de course selon les semaines, et une sortie longue pour l'endurance. Après chaque séance, tu notes tes sensations.",
+      stats: [["12", "Semaines"], ["2", "Séances / sem"], ["7:12", "Allure objectif /km"]] },
+    intro: "Ouvre une semaine pour voir ses deux séances. Sous chaque séance, choisis ton ressenti puis écris un commentaire si tu veux. Le jour de la course, note ton chrono dans le commentaire.",
+    allIntro: "Les allures sont calculées à partir de ta VMA de 11 km/h. L’allure clé est 7:12 par km : c’est celle de ton objectif de 1h12. Sur ton dernier 10 km, tu courais à 7:54 par km.",
+    allTip: ["1H12", "Tes temps de passage", "À 7:12/km : 14:24 au km 2, 36:00 au km 5, 57:36 au km 8 et 1:12:00 à l’arrivée. Si tu es en avance de plus d’une minute au km 5, ralentis légèrement."],
+    trend: { kind: "spe",
+      empty: "Note au moins 4 séances à allure 10 km pour voir si ton allure objectif devient plus facile.",
+      better: "Ton allure 10 km te paraît plus facile : le ressenti moyen est passé de {a} (début) à {b} (récent). Tu es sur la bonne voie pour 1h12.",
+      worse: "Tes séances à allure 10 km te paraissent plus dures qu'au début ({a} puis {b}). Elles s'allongent, c'est en partie normal. Si ça continue en phase 3, l'objectif de 1h14 sera peut-être plus adapté.",
+      stable: "Ton ressenti à allure 10 km est stable ({a} puis {b}) alors que les séances s'allongent : c'est déjà un progrès." },
+    ref: null
+  }
+};
+Object.keys(PROGS).forEach(function (k) {
+  PROGS[k].weeks.forEach(function (w) { w.km = Math.round(w.sessions.reduce(function (a, s) { return a + s.km; }, 0) * 10) / 10; });
+  PROGS[k].total = PROGS[k].weeks.reduce(function (a, w) { return a + w.sessions.length; }, 0);
+});
 // ─── STOCKAGE ────────────────────────────────────────────────────────────────
 var LS_KEY = "enola-run-club-v1";
 var LOGS = {};      // id -> { s: 0-4, c: "texte", at: ISO }
@@ -334,8 +462,14 @@ async function initDb() {
   }, function () { clearTimeout(timer); db = null; setSync("Enregistré sur cet appareil"); });
 }
 
+// ─── ÉTAT ────────────────────────────────────────────────────────────────────
+var PROG_KEY = "enola-run-club-prog";
+var CUR = "hyrox";
+try { var sp = localStorage.getItem(PROG_KEY); if (sp && PROGS[sp]) CUR = sp; } catch (e) {}
+function P() { return PROGS[CUR]; }
+function W() { return P().weeks; }
+
 // ─── ACTIONS ─────────────────────────────────────────────────────────────────
-function findSession(id) { for (var i = 0; i < WEEKS.length; i++) for (var j = 0; j < 2; j++) if (WEEKS[i].sessions[j].id === id) return { w: WEEKS[i], s: WEEKS[i].sessions[j] }; return null; }
 function isDone(id) { return !!(LOGS[id] && LOGS[id].s > 0); }
 function setFeel(id, v) { var c = LOGS[id] ? LOGS[id].c : ""; LOGS[id] = { s: v, c: c, at: new Date().toISOString() }; persist(id); refresh(); }
 function setNote(id, text) {
@@ -344,19 +478,43 @@ function setNote(id, text) {
   persist(id); refreshLight(id);
 }
 function clearLog(id) { delete LOGS[id]; persist(id); var ta = $('.note[data-id="' + id + '"]'); if (ta) ta.value = ""; refresh(); }
+function switchProg(k) {
+  if (!PROGS[k]) return;
+  CUR = k; selWeek = null;
+  try { localStorage.setItem(PROG_KEY, k); } catch (e) {}
+  $("#panel").classList.remove("on"); $("#panel").innerHTML = "";
+  renderAll();
+}
+
+// ─── RENDU : EN-TÊTE ─────────────────────────────────────────────────────────
+function renderHeroFull() {
+  var h = P().hero;
+  $("#hero").innerHTML = '<div class="mark" aria-hidden="true">' + h.mark + '</div><div class="hero-tag">' + h.tag + "</div><h1>" + h.h1 + "</h1><p>" + esc(h.p) + '</p><div class="hstats">' +
+    h.stats.map(function (s) { return '<div class="hs"><b>' + s[0] + "</b><span>" + s[1] + "</span></div>"; }).join("") +
+    '<div class="hs"><b id="h-done"></b><span>Séances faites</span></div></div>';
+  $$(".pg").forEach(function (b) { var on = b.dataset.prog === CUR; b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false"); });
+  $("#prog-intro").textContent = P().intro;
+  document.title = CUR === "dixk" ? "Enola Run Club · Prépa 10 km" : "Enola Run Club · Prépa HYROX";
+}
+function renderHero() {
+  var n = 0; W().forEach(function (w) { w.sessions.forEach(function (s) { if (isDone(s.id)) n++; }); });
+  var el = $("#h-done"); if (el) el.textContent = n + "/" + P().total;
+}
 
 // ─── RENDU : PROGRAMME ───────────────────────────────────────────────────────
 function renderWeeks() {
-  var html = "", cur = 0;
-  WEEKS.forEach(function (w) {
-    if (w.ph !== cur) { if (cur) html += "</div>"; cur = w.ph; html += '<div class="phase">' + PHASES[cur].name + "<span>" + PHASES[cur].range + '</span></div><div class="grid">'; }
-    var a = w.sessions[0], b = w.sessions[1];
-    html += '<button class="wk' + (w.rec ? " rec" : "") + (selWeek === w.n ? " sel" : "") + '" data-week="' + w.n + '">' +
+  var html = "", cur = 0, PH = P().phases;
+  W().forEach(function (w) {
+    if (w.ph !== cur) { if (cur) html += "</div>"; cur = w.ph; html += '<div class="phase">' + PH[cur].name + "<span>" + PH[cur].range + '</span></div><div class="grid">'; }
+    var chips = w.sessions.map(function (s) {
+      var k = KINDS[s.kind];
+      return '<span class="chip' + (k.cls ? " " + k.cls : "") + (isDone(s.id) ? " done" : "") + '" title="' + k.label + '">' + k.chip + "</span>";
+    }).join("");
+    html += '<button class="wk' + (w.rec ? " rec" : "") + (w.race ? " race" : "") + (selWeek === w.n ? " sel" : "") + '" data-week="' + w.n + '">' +
       '<div class="wk-n">SEMAINE ' + w.n + '</div><div class="wk-t">' + esc(w.title) + "</div>" +
-      '<div class="wk-s"><span class="chip' + (isDone(a.id) ? " done" : "") + '" title="Fractionné">FRAC</span>' +
-      '<span class="chip end' + (isDone(b.id) ? " done" : "") + '" title="Endurance">ENDU</span></div>' +
+      '<div class="wk-s">' + chips + "</div>" +
       '<div class="wk-v">' + fr1(w.km) + " km</div>" +
-      (w.rec ? '<span class="badge">Allégée</span>' : "") + (w.test ? '<span class="badge test">Test</span>' : "") + "</button>";
+      (w.rec ? '<span class="badge">Allégée</span>' : "") + (w.test ? '<span class="badge test">Test</span>' : "") + (w.race ? '<span class="badge">Course</span>' : "") + "</button>";
   });
   $("#weeks").innerHTML = html + "</div>";
 }
@@ -365,16 +523,17 @@ function sessionHtml(s) {
     return '<button class="fb" style="--c:' + f.css + '" data-id="' + s.id + '" data-v="' + f.v + '" aria-pressed="false"><i></i>' + f.label + "</button>";
   }).join("");
   var tags = s.tags.map(function (t) { return '<span class="tag">' + esc(t) + "</span>"; }).join("");
-  var end = s.kind === "end";
-  return '<div class="sess"><div class="sh"><span class="ty' + (end ? " end" : "") + '">' + (end ? "Endurance" : "Fractionné") + "</span>" +
+  var k = KINDS[s.kind];
+  var ph = s.kind === "race" ? "Ton chrono, tes temps de passage, tes sensations…" : "Commentaire libre : jambes, souffle, météo, motivation…";
+  return '<div class="sess"><div class="sh"><span class="ty' + (k.cls ? " " + k.cls : "") + '">' + k.label + "</span>" +
     '<span class="sn">' + esc(s.name) + '</span><span class="sd">' + s.dur + " min · ~" + fr1(s.km) + " km</span></div>" +
     '<div class="sb"><p class="desc">' + esc(s.desc) + '</p><div class="tags">' + tags + "</div>" +
     '<div class="log"><div class="log-t">Mes sensations</div><div class="feel">' + btns + "</div>" +
-    '<textarea class="note" data-id="' + s.id + '" id="note-' + s.id + '" aria-label="Commentaire libre" placeholder="Commentaire libre : jambes, souffle, météo, motivation…"></textarea>' +
+    '<textarea class="note" data-id="' + s.id + '" id="note-' + s.id + '" aria-label="Commentaire libre" placeholder="' + ph + '"></textarea>' +
     '<div class="meta"><span data-meta="' + s.id + '"></span><button class="lnk" data-clear="' + s.id + '">Effacer</button></div></div></div></div>';
 }
 function openWeek(n) {
-  var w = WEEKS[n - 1], p = $("#panel");
+  var w = W()[n - 1], p = $("#panel");
   if (p.classList.contains("on") && selWeek === n) { closeWeek(); return; }
   selWeek = n;
   p.innerHTML = '<div class="ph"><div><small>SEMAINE ' + n + " · " + fr1(w.km) + ' KM</small><h2>' + esc(w.title) + '</h2></div><button class="x" data-close="1" aria-label="Fermer">✕</button></div>' +
@@ -400,14 +559,12 @@ function syncSessionUI(skipId) {
 }
 function refreshLight(id) { syncSessionUI(id); renderHero(); renderStats(); }
 function refresh() { renderHero(); renderWeeks(); syncSessionUI(); renderStats(); }
-function renderHero() {
-  var n = 0; WEEKS.forEach(function (w) { w.sessions.forEach(function (s) { if (isDone(s.id)) n++; }); });
-  $("#h-done").textContent = n + "/24";
-}
+function renderAll() { renderHeroFull(); renderStatic(); refresh(); }
+
 // ─── RENDU : PROGRESSION ─────────────────────────────────────────────────────
 function entriesList() {
   var out = [];
-  WEEKS.forEach(function (w) { w.sessions.forEach(function (s) { if (isDone(s.id)) out.push({ w: w, s: s, kind: s.kind, v: LOGS[s.id].s }); }); });
+  W().forEach(function (w) { w.sessions.forEach(function (s) { if (isDone(s.id)) out.push({ w: w, s: s, kind: s.kind, v: LOGS[s.id].s }); }); });
   return out;
 }
 function avgOf(a) { return a.length ? a.reduce(function (x, e) { return x + e.v; }, 0) / a.length : null; }
@@ -418,67 +575,74 @@ function trendOf(list) {
   var a = avgOf(list.slice(0, h)), b = avgOf(list.slice(list.length - h));
   return { a: a, b: b, d: b - a };
 }
+function chartKinds() {
+  var ks = P().kinds.slice();
+  W().forEach(function (w) { w.sessions.forEach(function (s) { if (ks.indexOf(s.kind) < 0) ks.push(s.kind); }); });
+  return ks;
+}
 function chartSvg(entries) {
-  var W = 720, H = 290, L = 104, R = 24, T = 18, B = 50, iw = W - L - R, ih = H - T - B;
-  function X(n) { return L + (n - 1) * iw / 11; }
+  var N = W().length, W0 = 720, H = 290, L = 104, R = 24, T = 18, B = 50, iw = W0 - L - R, ih = H - T - B;
+  function X(n) { return L + (n - 1) * iw / (N - 1); }
   function Y(v) { return T + ih - (v - 1) * ih / 3; }
   var g = "";
   FEELS.forEach(function (f) {
-    g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(f.v) + '" y2="' + Y(f.v) + '" style="stroke:var(--line)" stroke-dasharray="3 4"/>' +
+    g += '<line x1="' + L + '" x2="' + (W0 - R) + '" y1="' + Y(f.v) + '" y2="' + Y(f.v) + '" style="stroke:var(--line)" stroke-dasharray="3 4"/>' +
       '<text x="' + (L - 10) + '" y="' + (Y(f.v) + 4) + '" text-anchor="end" font-size="11" style="fill:var(--muted)">' + f.label + "</text>";
   });
-  WEEKS.forEach(function (w) {
+  W().forEach(function (w) {
     g += '<text x="' + X(w.n) + '" y="' + (H - 26) + '" text-anchor="middle" font-size="11" style="fill:var(--muted)">S' + w.n + "</text>";
-    var tag = w.rec ? "allégée" : (w.test ? "bilan" : "");
+    var tag = w.rec ? "allégée" : (w.test ? "bilan" : (w.race ? "course" : ""));
     if (tag) g += '<text x="' + X(w.n) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="9" style="fill:var(--muted)">' + tag + "</text>";
   });
-  [["int", "var(--bordeaux)", "Fractionné"], ["end", "var(--blue)", "Endurance"]].forEach(function (k) {
-    var pts = entries.filter(function (e) { return e.kind === k[0]; });
-    if (pts.length > 1) g += '<polyline fill="none" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="stroke:' + k[1] + '" points="' +
+  chartKinds().forEach(function (kk) {
+    var k = KINDS[kk], pts = entries.filter(function (e) { return e.kind === kk; });
+    if (pts.length > 1) g += '<polyline fill="none" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="stroke:' + k.color + '" points="' +
       pts.map(function (e) { return X(e.w.n) + "," + Y(e.v); }).join(" ") + '"/>';
     pts.forEach(function (e) {
-      g += '<circle cx="' + X(e.w.n) + '" cy="' + Y(e.v) + '" r="5.5" stroke-width="2" style="fill:' + k[1] + ';stroke:var(--card)"><title>S' + e.w.n + " " + k[2] + " : " + labelOf(e.v) + "</title></circle>";
+      g += '<circle cx="' + X(e.w.n) + '" cy="' + Y(e.v) + '" r="5.5" stroke-width="2" style="fill:' + k.color + ';stroke:var(--card)"><title>S' + e.w.n + " " + k.label + " : " + labelOf(e.v) + "</title></circle>";
     });
   });
-  return '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" style="min-width:560px;display:block" role="img" aria-label="Ressenti par semaine, fractionné et endurance">' + g + "</svg>";
+  return '<svg viewBox="0 0 ' + W0 + " " + H + '" width="100%" style="min-width:560px;display:block" role="img" aria-label="Ressenti par semaine et par type de séance">' + g + "</svg>";
 }
 function csvExport() {
   var rows = [["semaine", "seance", "type", "ressenti", "score", "commentaire", "date"]];
-  WEEKS.forEach(function (w) { w.sessions.forEach(function (s) {
+  W().forEach(function (w) { w.sessions.forEach(function (s) {
     var l = LOGS[s.id]; if (!l) return;
-    rows.push([w.n, s.name, s.kind === "int" ? "Fractionné" : "Endurance", l.s ? labelOf(l.s) : "", l.s || "", l.c || "", l.at || ""]);
+    rows.push([w.n, s.name, KINDS[s.kind].label, l.s ? labelOf(l.s) : "", l.s || "", l.c || "", l.at || ""]);
   }); });
   var csv = rows.map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(","); }).join("\n");
-  var data = "\ufeff" + csv;
-  if (DL) { DL.save({ filename: "enola-sensations.csv", data: data }).catch(function () {}); return; }
+  var data = "\ufeff" + csv, name = P().csv;
+  if (DL) { DL.save({ filename: name, data: data }).catch(function () {}); return; }
   try {
     var url = URL.createObjectURL(new Blob([data], { type: "text/csv;charset=utf-8" }));
-    var a = document.createElement("a"); a.href = url; a.download = "enola-sensations.csv";
+    var a = document.createElement("a"); a.href = url; a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   } catch (e) {}
 }
+function plural(n, w) { return n + " " + w + (n > 1 ? "s" : ""); }
+function fill(t, o) { return t.replace(/\{(\w)\}/g, function (m, k) { return o[k]; }); }
 function renderStats() {
   var el = $("#pane-stats"); if (!el) return;
-  var en = entriesList(), ints = en.filter(function (e) { return e.kind === "int"; }), ends = en.filter(function (e) { return e.kind === "end"; });
-  var all = avgOf(en), ai = avgOf(ints), ae = avgOf(ends);
+  var pr = P(), tot = pr.total, en = entriesList(), all = avgOf(en);
   var h = '<div class="kpis">' +
-    '<div class="kpi"><b>' + en.length + '<small> / 24</small></b><span>Séances faites, soit ' + Math.round(en.length / 24 * 100) + " % du programme</span></div>" +
-    '<div class="kpi"><b>' + (all === null ? "–" : fr1(all) + "<small> / 4</small>") + "</b><span>Ressenti moyen" + (all === null ? "" : ", plutôt " + labelOf(all)) + "</span></div>" +
-    '<div class="kpi"><b>' + (ae === null ? "–" : fr1(ae) + "<small> / 4</small>") + "</b><span>Endurance : " + ends.length + " séance" + (ends.length > 1 ? "s" : "") + " notée" + (ends.length > 1 ? "s" : "") + "</span></div>" +
-    '<div class="kpi"><b>' + (ai === null ? "–" : fr1(ai) + "<small> / 4</small>") + "</b><span>Fractionné : " + ints.length + " séance" + (ints.length > 1 ? "s" : "") + " notée" + (ints.length > 1 ? "s" : "") + "</span></div></div>";
+    '<div class="kpi"><b>' + en.length + "<small> / " + tot + "</small></b><span>Séances faites, soit " + Math.round(en.length / tot * 100) + " % du programme</span></div>" +
+    '<div class="kpi"><b>' + (all === null ? "–" : fr1(all) + "<small> / 4</small>") + "</b><span>Ressenti moyen" + (all === null ? "" : ", plutôt " + labelOf(all)) + "</span></div>";
+  pr.kinds.forEach(function (kk) {
+    var l = en.filter(function (e) { return e.kind === kk; }), a = avgOf(l);
+    h += '<div class="kpi"><b>' + (a === null ? "–" : fr1(a) + "<small> / 4</small>") + "</b><span>" + KINDS[kk].label + " : " + plural(l.length, "séance") + " notée" + (l.length > 1 ? "s" : "") + "</span></div>";
+  });
+  h += "</div>";
 
-  var t = trendOf(ends), msg;
-  if (!t) msg = "Note au moins 4 séances d'endurance pour voir si tes footings te paraissent de plus en plus faciles.";
-  else if (t.d <= -0.4) msg = "Tes footings te paraissent plus faciles : le ressenti moyen est passé de " + fr1(t.a) + " (début) à " + fr1(t.b) + " (récent). C'est l'effet recherché par le programme.";
-  else if (t.d >= 0.4) msg = "Tes footings te paraissent plus difficiles qu'au début (" + fr1(t.a) + " puis " + fr1(t.b) + "). Cela peut venir de la fatigue de la semaine ou d'une allure trop vive : ralentis un peu et dis-le dans les commentaires.";
-  else msg = "Ton ressenti en footing est stable (" + fr1(t.a) + " puis " + fr1(t.b) + "). Les progrès apparaissent souvent après les semaines allégées.";
-  if (isDone("w1-2") && isDone("w12-2")) msg += " Footing repère : " + labelOf(LOGS["w1-2"].s) + " en semaine 1, " + labelOf(LOGS["w12-2"].s) + " en semaine 12.";
+  var tr = pr.trend, t = trendOf(en.filter(function (e) { return e.kind === tr.kind; })), msg;
+  if (!t) msg = tr.empty;
+  else msg = fill(t.d <= -0.4 ? tr.better : (t.d >= 0.4 ? tr.worse : tr.stable), { a: fr1(t.a), b: fr1(t.b) });
+  if (pr.ref && isDone(pr.ref[0]) && isDone(pr.ref[1])) msg += " " + fill(pr.ref[2], { x: labelOf(LOGS[pr.ref[0]].s), y: labelOf(LOGS[pr.ref[1]].s) });
   h += '<div class="verdict">' + msg + "</div>";
 
   h += '<div class="box"><div class="row" style="justify-content:space-between"><div><h3>Ressenti par semaine</h3><div class="sub">Plus le point est bas, plus la séance a été facile. Une courbe qui descend alors que le volume monte montre que tu progresses.</div></div>' +
-    '<button class="btn ghost" id="csv">Exporter en CSV</button>' + "</div>" +
-    '<div class="legend"><span><i style="background:var(--bordeaux)"></i>Fractionné</span><span><i style="background:var(--blue)"></i>Endurance</span></div>' +
+    '<button class="btn ghost" id="csv">Exporter en CSV</button></div>' +
+    '<div class="legend">' + chartKinds().map(function (kk) { return '<span><i style="background:' + KINDS[kk].color + '"></i>' + KINDS[kk].label + "</span>"; }).join("") + "</div>" +
     '<div class="chartwrap">' + chartSvg(en) + "</div>" +
     (en.length ? "" : '<div class="empty">Le graphique se remplit dès ta première séance notée.</div>') + "</div>";
 
@@ -488,15 +652,18 @@ function renderStats() {
   }).join("");
   h += '<div class="box"><h3>Répartition des sensations</h3><div class="sub">Nombre de séances par niveau de ressenti.</div><div class="dist">' + dist + "</div></div>";
 
-  var rows = [1, 2, 3].map(function (p) {
+  var rows = Object.keys(pr.phases).map(function (p) {
+    p = +p;
+    var cnt = 0; W().forEach(function (w) { if (w.ph === p) cnt += w.sessions.length; });
     var pe = en.filter(function (e) { return e.w.ph === p; });
-    var a = avgOf(pe.filter(function (e) { return e.kind === "int"; })), b = avgOf(pe.filter(function (e) { return e.kind === "end"; }));
-    return "<tr><td>" + PHASES[p].name.split(" · ")[1] + '</td><td class="m">' + pe.length + " / 8</td><td>" + (a === null ? "–" : fr1(a) + " · " + labelOf(a)) + "</td><td>" + (b === null ? "–" : fr1(b) + " · " + labelOf(b)) + "</td></tr>";
+    return "<tr><td>" + pr.phases[p].name.split(" · ")[1] + '</td><td class="m">' + pe.length + " / " + cnt + "</td>" +
+      pr.kinds.map(function (kk) { var a = avgOf(pe.filter(function (e) { return e.kind === kk; })); return "<td>" + (a === null ? "–" : fr1(a) + " · " + labelOf(a)) + "</td>"; }).join("") + "</tr>";
   }).join("");
-  h += '<div class="box"><h3>Résumé par phase</h3><div class="sub">Ressenti moyen sur 4 pour chaque type de séance.</div><div class="chartwrap"><table><thead><tr><th>Phase</th><th>Faites</th><th>Fractionné</th><th>Endurance</th></tr></thead><tbody>' + rows + "</tbody></table></div></div>";
+  h += '<div class="box"><h3>Résumé par phase</h3><div class="sub">Ressenti moyen sur 4 pour chaque type de séance.</div><div class="chartwrap"><table><thead><tr><th>Phase</th><th>Faites</th>' +
+    pr.kinds.map(function (kk) { return "<th>" + KINDS[kk].label + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div></div>";
 
   var logs = [];
-  WEEKS.forEach(function (w) { w.sessions.forEach(function (s) { var l = LOGS[s.id]; if (l && (l.s || l.c)) logs.push({ w: w, s: s, l: l }); }); });
+  W().forEach(function (w) { w.sessions.forEach(function (s) { var l = LOGS[s.id]; if (l && (l.s || l.c)) logs.push({ w: w, s: s, l: l }); }); });
   logs.sort(function (a, b) { return String(b.l.at).localeCompare(String(a.l.at)); });
   var jr = logs.map(function (e) {
     var f = e.l.s ? FEELS[e.l.s - 1] : null;
@@ -511,19 +678,21 @@ function renderStats() {
 
 // ─── RENDU : AUTRES ONGLETS ──────────────────────────────────────────────────
 function renderStatic() {
-  var rows = ALLURES.map(function (a) { return "<tr><td><b>" + a[0] + "</b></td><td>" + a[1] + '</td><td class="m">' + a[2] + "</td><td>" + a[3] + "</td></tr>"; }).join("");
-  $("#pane-allures").innerHTML = '<p class="intro">Les allures sont calculées à partir de ta VMA de 11 km/h, soit 5:27 par km. Elles sont exprimées en minutes par kilomètre. Au fil du programme, ajuste-les au ressenti plutôt qu’à la montre.</p>' +
+  var pr = P();
+  var rows = pr.allures.map(function (a) { return "<tr><td><b>" + a[0] + "</b></td><td>" + a[1] + '</td><td class="m">' + a[2] + "</td><td>" + a[3] + "</td></tr>"; }).join("");
+  $("#pane-allures").innerHTML = '<p class="intro">' + pr.allIntro + "</p>" +
     '<div class="box"><div class="chartwrap"><table style="min-width:620px"><thead><tr><th>Type</th><th>% VMA</th><th>Allure /km</th><th>Sensation</th></tr></thead><tbody>' + rows + "</tbody></table></div></div>" +
-    '<div class="tip"><div class="tip-ic">TEST</div><div><div class="tip-t">Recalculer ta VMA</div><div class="tip-x">Le test des 6 minutes de la semaine 12 donne ta nouvelle VMA : distance parcourue en mètres divisée par 100. Par exemple, 1 150 m en 6 minutes donne 11,5 km/h, soit une allure VMA de 5:13/km.</div></div></div>';
-  $("#pane-conseils").innerHTML = TIPS.map(function (t) { return '<div class="tip"><div class="tip-ic">' + t[0] + '</div><div><div class="tip-t">' + t[1] + '</div><div class="tip-x">' + t[2] + "</div></div></div>"; }).join("");
-  $("#pane-profil").innerHTML = '<div class="pcard">' + PROFIL.map(function (p) { return '<div class="pf"><span>' + p[0] + "</span><b>" + p[1] + "</b></div>"; }).join("") + "</div>" +
-    '<div class="tip"><div class="tip-ic">PRO</div><div><div class="tip-t">Analyse du profil</div><div class="tip-x">' + PROFIL_NOTE + "</div></div></div>";
+    '<div class="tip"><div class="tip-ic">' + pr.allTip[0] + '</div><div><div class="tip-t">' + pr.allTip[1] + '</div><div class="tip-x">' + pr.allTip[2] + "</div></div></div>";
+  $("#pane-conseils").innerHTML = pr.tips.map(function (t) { return '<div class="tip"><div class="tip-ic">' + t[0] + '</div><div><div class="tip-t">' + t[1] + '</div><div class="tip-x">' + t[2] + "</div></div></div>"; }).join("");
+  $("#pane-profil").innerHTML = '<div class="pcard">' + pr.profil.map(function (p) { return '<div class="pf"><span>' + p[0] + "</span><b>" + p[1] + "</b></div>"; }).join("") + "</div>" +
+    '<div class="tip"><div class="tip-ic">PRO</div><div><div class="tip-t">Analyse du profil</div><div class="tip-x">' + pr.profilNote + "</div></div></div>";
 }
 
 // ─── ÉVÉNEMENTS ──────────────────────────────────────────────────────────────
 document.addEventListener("click", function (e) {
   var t = e.target.closest("button"); if (!t) return;
-  if (t.dataset.tab) {
+  if (t.dataset.prog) switchProg(t.dataset.prog);
+  else if (t.dataset.tab) {
     $$(".tab").forEach(function (b) { b.classList.toggle("on", b === t); });
     $$(".pane").forEach(function (p) { p.classList.toggle("on", p.id === "pane-" + t.dataset.tab); });
   } else if (t.dataset.week) openWeek(+t.dataset.week);
@@ -536,7 +705,7 @@ document.addEventListener("input", function (e) {
   var id = ta.dataset.id; clearTimeout(noteTimers[id]);
   noteTimers[id] = setTimeout(function () { setNote(id, ta.value.trim()); }, 700);
 });
-lsLoad(); renderStatic(); refresh(); initDb();
+lsLoad(); renderAll(); initDb();
 </script>
 
 </body></html>
